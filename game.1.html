@@ -1,0 +1,1380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EPA Section 609 Challenge Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .game-container {
+            max-width: 900px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        .timer {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .score {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .accuracy {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .streak {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .menu-screen {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .menu-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ffeaa7, #fab1a0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .game-modes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .mode-card {
+            background: rgba(255,255,255,0.2);
+            padding: 30px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .mode-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255,255,255,0.5);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .mode-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .mode-description {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .mode-stats {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .leaderboard {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+        }
+
+        .leaderboard h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .leaderboard-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            width: 30px;
+        }
+
+        .leaderboard-info {
+            flex: 1;
+            margin: 0 15px;
+        }
+
+        .leaderboard-name {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .leaderboard-details {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            color: #4facfe;
+            font-size: 1.1rem;
+        }
+
+        .username-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .username-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .username-form {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .username-modal.show .username-form {
+            transform: scale(1);
+        }
+
+        .username-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .username-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .current-user {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .current-user-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .current-user-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .question-container {
+            background: white;
+            color: #333;
+            border-radius: 15px;
+            min-height: 300px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .question-number {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #667eea;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .category-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            margin: 40px 0 30px 0;
+            font-weight: 600;
+        }
+
+        .answer-options {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .answer-option {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .answer-option:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .answer-option.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .answer-option.correct {
+            border-color: #28a745;
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .answer-option.incorrect {
+            border-color: #dc3545;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .result-feedback {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .result-feedback.correct {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+
+        .result-feedback.incorrect {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            border-color: transparent;
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #ff5252 0%, #d84315 100%);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .completion-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .completion-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        .completion-modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+        }
+
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .performance-stat {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .performance-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .performance-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .question-text {
+                font-size: 1.1rem;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .menu-title {
+                font-size: 2rem;
+            }
+
+            .game-modes {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>EPA Section 609 Challenge</h1>
+        <p>Test your knowledge and compete for the top score!</p>
+    </div>
+
+    <!-- Menu Screen -->
+    <div id="menuScreen" class="game-container">
+        <div class="menu-screen">
+            <h2 class="menu-title">🏆 Choose Your Challenge</h2>
+            <p class="menu-subtitle">Select a game mode and prove your EPA 609 mastery!</p>
+            
+            <div class="current-user">
+                <div class="current-user-label">Playing as:</div>
+                <div class="current-user-name" id="currentUserDisplay">Player</div>
+                <button class="btn" onclick="changeUsername()" style="margin-top: 10px; padding: 5px 15px; font-size: 0.8rem;">Change Name</button>
+            </div>
+            
+            <div class="game-modes">
+                <div class="mode-card" onclick="startGame('quick')">
+                    <div class="mode-title">⚡ Quick Quiz</div>
+                    <div class="mode-description">10 random questions</div>
+                    <div class="mode-stats">2 minutes • Fast-paced</div>
+                </div>
+                
+                <div class="mode-card" onclick="startGame('standard')">
+                    <div class="mode-title">🎯 Standard Test</div>
+                    <div class="mode-description">25 questions (real exam length)</div>
+                    <div class="mode-stats">15 minutes • Realistic</div>
+                </div>
+                
+                <div class="mode-card" onclick="startGame('endurance')">
+                    <div class="mode-title">🔥 Endurance Challenge</div>
+                    <div class="mode-description">All 45 questions</div>
+                    <div class="mode-stats">30 minutes • Complete mastery</div>
+                </div>
+                
+                <div class="mode-card" onclick="startGame('study')">
+                    <div class="mode-title">📚 Study Mode</div>
+                    <div class="mode-description">No timer, see answers</div>
+                    <div class="mode-stats">Unlimited time • Learning</div>
+                </div>
+            </div>
+
+            <div class="leaderboard">
+                <h3>🏅 Top Scores</h3>
+                <div id="leaderboardList">
+                    <!-- Leaderboard entries will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="game-container hidden">
+        <div class="stats-grid">
+            <div class="stat-item timer">
+                <div class="stat-label">Time Remaining</div>
+                <div class="stat-value" id="timeRemaining">15:00</div>
+            </div>
+            <div class="stat-item score">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="currentScore">0</div>
+            </div>
+            <div class="stat-item accuracy">
+                <div class="stat-label">Accuracy</div>
+                <div class="stat-value" id="accuracy">0%</div>
+            </div>
+            <div class="stat-item streak">
+                <div class="stat-label">Streak</div>
+                <div class="stat-value" id="streak">0</div>
+            </div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div class="question-container" id="questionContainer">
+            <div class="question-number" id="questionNumber">1 / 25</div>
+            <div class="category-badge" id="categoryBadge">Category</div>
+            <div class="question-text" id="questionText">Loading question...</div>
+            <div class="answer-options" id="answerOptions">
+                <!-- Answer options will be populated here -->
+            </div>
+            <div class="result-feedback hidden" id="resultFeedback">
+                <!-- Feedback will appear here -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="skipQuestion()" id="skipBtn">Skip Question</button>
+            <button class="btn primary" onclick="nextQuestion()" id="nextBtn" disabled>Next Question</button>
+            <button class="btn" onclick="endGame()">End Game</button>
+        </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="username-modal" id="usernameModal">
+        <div class="username-form">
+            <h2>👤 Enter Your Name</h2>
+            <p>Your name will appear on the leaderboard!</p>
+            <input type="text" class="username-input" id="usernameInput" placeholder="Enter your name..." maxlength="20">
+            <div style="margin-top: 20px;">
+                <button class="btn primary" onclick="saveUsername()">Save Name</button>
+                <button class="btn" onclick="closeUsernameModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Completion Modal -->
+    <div class="completion-modal" id="completionModal">
+        <div class="modal-content">
+            <h2>🎉 Game Complete!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <div class="performance-stats">
+                <div class="performance-stat">
+                    <div class="performance-value" id="finalAccuracy">0%</div>
+                    <div class="performance-label">Accuracy</div>
+                </div>
+                <div class="performance-stat">
+                    <div class="performance-value" id="finalTime">0:00</div>
+                    <div class="performance-label">Time</div>
+                </div>
+                <div class="performance-stat">
+                    <div class="performance-value" id="maxStreak">0</div>
+                    <div class="performance-label">Best Streak</div>
+                </div>
+            </div>
+            <div id="newRecord" class="hidden" style="color: #ff6b6b; font-weight: bold; margin: 20px 0;">
+                🏆 NEW HIGH SCORE! 🏆
+            </div>
+            <button class="btn primary" onclick="returnToMenu()">Back to Menu</button>
+        </div>
+    </div>
+
+    <script>
+        const flashcards = [
+            {
+                question: "One effect of some refrigerant gases in the atmosphere is that they:",
+                options: ["Contribute to trapping heat", "Reduce global warming", "Increase oxygen levels", "Cool the planet"],
+                correct: 0,
+                category: "Environmental Impact"
+            },
+            {
+                question: "Mobile A/C system design changes, new service procedures and equipment have been developed for what reason?",
+                options: ["To increase profits", "To reduce lifetime refrigerant emissions", "To make systems more complex", "To use more refrigerant"],
+                correct: 1,
+                category: "Environmental Impact"
+            },
+            {
+                question: "Which SAE Standard(s) must be referred to on the label of approved HFC-134a refrigerant recycling machines?",
+                options: ["SAE J2843", "SAE J2788", "SAE J2851", "SAE J3030"],
+                correct: 1,
+                category: "Standards & Equipment"
+            },
+            {
+                question: "To recover and recharge refrigerant from an HFO-1234yf system, a shop will need:",
+                options: ["Only a new storage tank", "A new recovery, recycling and recharging machine", "No new equipment", "A new compressor"],
+                correct: 1,
+                category: "Standards & Equipment"
+            },
+            {
+                question: "The technician's first step in A/C system service should be to:",
+                options: ["Calculate the cost", "Leak test the system", "Perform a visual inspection", "Remove refrigerant"],
+                correct: 2,
+                category: "Service Procedures"
+            },
+            {
+                question: "How much time do manufacturers suggest for proper system evacuation?",
+                options: ["5 minutes", "30 to 45 minutes", "Two hours", "Overnight"],
+                correct: 1,
+                category: "Service Procedures"
+            },
+            {
+                question: "When using an HFC-134a refrigerant recovery machine, after completing the first recovery process, how long must you wait before checking for pressure rise?",
+                options: ["1 minute", "5 minutes", "10 minutes", "15 minutes"],
+                correct: 1,
+                category: "Service Procedures"
+            },
+            {
+                question: "HFO-1234yf has been tested and found compatible with:",
+                options: ["Mineral oil", "PAG oil", "Hydraulic oil", "All oils"],
+                correct: 1,
+                category: "Refrigerant Compatibility"
+            },
+            {
+                question: "CFC-12 recovery equipment has SAE 3/8-inch service fittings. HFC-134a recovery equipment has:",
+                options: ["1/2-inch Acme threads", "10 mm threads", "Quick-couple design", "Same as CFC-12"],
+                correct: 2,
+                category: "Service Equipment"
+            },
+            {
+                question: "The use of ultraviolet (UV) or fluorescent dyes in an HFO-1234yf system is:",
+                options: ["Approved by some manufacturers but not others", "Prohibited by federal law", "Always permissible if system not running", "Impossible"],
+                correct: 0,
+                category: "Leak Detection"
+            },
+            {
+                question: "True or False: R-134a is a chlorine-free refrigerant.",
+                options: ["True", "False"],
+                correct: 0,
+                category: "Refrigerant Properties"
+            },
+            {
+                question: "Since when is it no longer legal for CFCs to be manufactured or imported into the United States?",
+                options: ["January 1, 1994", "January 1, 1996", "January 1, 1998", "January 1, 2000"],
+                correct: 1,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "Each chlorine ion can destroy how many ozone molecules?",
+                options: ["1,000", "10,000", "100,000", "1,000,000"],
+                correct: 2,
+                category: "Environmental Impact"
+            },
+            {
+                question: "MVAC systems being disposed must be evacuated to what level of mercury before being scrapped?",
+                options: ["2 inches", "4 inches", "6 inches", "8 inches"],
+                correct: 1,
+                category: "Disposal Requirements"
+            },
+            {
+                question: "Since when is it illegal to vent substitutes for CFC and HCFC refrigerants?",
+                options: ["November 15, 1993", "November 15, 1995", "November 15, 1997", "November 15, 1999"],
+                correct: 1,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "A refillable refrigerant cylinder must not be filled above what percentage of its full capacity?",
+                options: ["70%", "75%", "80%", "85%"],
+                correct: 2,
+                category: "Safety & Equipment"
+            },
+            {
+                question: "What does the ozone layer absorb and scatter from the sun?",
+                options: ["Infrared light", "Visible light", "Ultraviolet light", "Radio waves"],
+                correct: 2,
+                category: "Environmental Science"
+            },
+            {
+                question: "What is the maximum fine EPA can assess per day per violation for Clean Air Act violations?",
+                options: ["$1,000", "$5,000", "$10,000", "$25,000"],
+                correct: 2,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "For determining Ozone Depletion Potential, which substance has been assigned a factor of 1?",
+                options: ["CFC-11", "CFC-12", "HCFC-22", "HFC-134a"],
+                correct: 0,
+                category: "Environmental Science"
+            },
+            {
+                question: "True or False: Ester-based synthetic oils can be mixed with other oils.",
+                options: ["True", "False"],
+                correct: 1,
+                category: "Lubricants & Oils"
+            },
+            {
+                question: "The lifetime of CFCs is believed to range from how many years?",
+                options: ["5-15 years", "20-100 years", "150-200 years", "500+ years"],
+                correct: 1,
+                category: "Environmental Science"
+            },
+            {
+                question: "CFCs are highly reactive in which part of the atmosphere?",
+                options: ["Upper levels", "Lower levels", "Middle levels", "All levels equally"],
+                correct: 1,
+                category: "Environmental Science"
+            },
+            {
+                question: "At high temperatures, CFC-12 can decompose to form what substances?",
+                options: ["Water and carbon dioxide", "Hydrofluoric acid and/or hydrochloric acid", "Oxygen and nitrogen", "Methane and ethane"],
+                correct: 1,
+                category: "Safety & Hazards"
+            },
+            {
+                question: "Non-condensables in a refrigeration system result in what type of discharge pressure?",
+                options: ["Lower discharge pressure", "Higher discharge pressure", "No change in pressure", "Fluctuating pressure"],
+                correct: 1,
+                category: "System Diagnostics"
+            },
+            {
+                question: "What percentage of available ozone is in the stratosphere layer?",
+                options: ["About 50%", "About 70%", "About 90%", "About 95%"],
+                correct: 2,
+                category: "Environmental Science"
+            },
+            {
+                question: "Moisture level in recycled R-12 cannot exceed how many PPM by weight?",
+                options: ["10 PPM", "15 PPM", "20 PPM", "25 PPM"],
+                correct: 1,
+                category: "Purity Standards"
+            },
+            {
+                question: "Which certification is required for over-the-road refrigeration units and R-22 HCFC air conditioning systems?",
+                options: ["Section 608", "Section 609", "Section 610", "No certification needed"],
+                correct: 0,
+                category: "Certification Requirements"
+            },
+            {
+                question: "True or False: If a technician is certified to handle CFC-12, they must be re-certified to handle HFC-134a.",
+                options: ["True", "False"],
+                correct: 1,
+                category: "Certification Requirements"
+            },
+            {
+                question: "What is the average ozone concentration in Earth's atmosphere?",
+                options: ["About 0.1 parts per million", "About 0.3 parts per million", "About 0.5 parts per million", "About 1.0 parts per million"],
+                correct: 1,
+                category: "Environmental Science"
+            },
+            {
+                question: "What color are R-134a disposable refrigerant cylinders?",
+                options: ["Red", "Blue", "Light blue", "Yellow"],
+                correct: 2,
+                category: "Equipment Identification"
+            },
+            {
+                question: "Small containers of refrigerant under what weight are restricted to Section 609 certified people only?",
+                options: ["10 pounds", "15 pounds", "20 pounds", "25 pounds"],
+                correct: 2,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "How many years must all records related to MVAC system services be maintained?",
+                options: ["1 year", "2 years", "3 years", "5 years"],
+                correct: 2,
+                category: "Record Keeping"
+            },
+            {
+                question: "Since when has it been mandatory to recycle HFC-134a before returning it to MVAC systems?",
+                options: ["January 29, 1996", "January 29, 1998", "January 29, 2000", "January 29, 2002"],
+                correct: 1,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "What is an ozone molecule composed of?",
+                options: ["Two atoms of oxygen", "Three atoms of oxygen", "Four atoms of oxygen", "One atom of oxygen"],
+                correct: 1,
+                category: "Environmental Science"
+            },
+            {
+                question: "What substance will NOT react with ozone gas?",
+                options: ["Chlorine", "Bromine", "Fluorine", "Iodine"],
+                correct: 2,
+                category: "Environmental Science"
+            },
+            {
+                question: "True or False: Halons were completely phased out by 1994.",
+                options: ["True", "False"],
+                correct: 0,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "Recovery cylinders are painted what colors?",
+                options: ["Red and white", "Blue and white", "Yellow in shoulder area and 12 inches down the side", "Green and yellow"],
+                correct: 2,
+                category: "Equipment Identification"
+            },
+            {
+                question: "What is not identified in the manual as a concern with field-coupled hoses?",
+                options: ["Length of hose", "Incorrect crimping", "Tube and hose fit", "Leakage"],
+                correct: 0,
+                category: "Field Service"
+            },
+            {
+                question: "If the same service equipment is used to service both CFC-12 and HFC-134a systems, what will happen?",
+                options: ["No problems", "Possible venting", "Contamination between systems", "System explosion"],
+                correct: 2,
+                category: "Contamination Prevention"
+            },
+            {
+                question: "Mixing CFC-12 and HFC-134a in the same system will:",
+                options: ["Improve cooling", "Result in cross-contamination", "Cause no problems", "Lower operating pressure"],
+                correct: 1,
+                category: "Contamination Prevention"
+            },
+            {
+                question: "HFO-1234yf can be used in:",
+                options: ["Any U.S. built vehicle", "Any newly manufactured vehicle designed for it", "Any vehicle built after 2001", "Passenger cars only"],
+                correct: 1,
+                category: "Refrigerant Compatibility"
+            },
+            {
+                question: "It is not recommended by the US EPA, but adding refrigerant to a leaking A/C system is:",
+                options: ["Prohibited in most states", "Permitted unless local laws prohibit", "Prohibited by manufacturers", "Prohibited for all except HFC-134a"],
+                correct: 1,
+                category: "Legal & Regulatory"
+            },
+            {
+                question: "For HFO-1234yf systems, recovery/recycling/recharge equipment must meet which SAE Standards?",
+                options: ["SAE J2788 only", "SAE J2843 or J3030", "SAE J2851 only", "No specific standards"],
+                correct: 1,
+                category: "Standards & Equipment"
+            },
+            {
+                question: "Before reuse, what must be done with HFC-134a recovered using recovery-only equipment?",
+                options: ["Use immediately", "It must be recycled or reclaimed", "Filter only", "Cool down only"],
+                correct: 1,
+                category: "Service Procedures"
+            },
+            {
+                question: "Why are shut-off valves located within 12 inches from the 'vehicle end' of A/C service equipment hoses?",
+                options: ["Cost savings", "Safety and containment", "Easier installation", "No specific reason"],
+                correct: 1,
+                category: "Safety & Equipment"
+            }
+        ];
+
+        // Game state variables
+        let currentGameMode = '';
+        let currentQuestionIndex = 0;
+        let gameQuestions = [];
+        let score = 0;
+        let correctAnswers = 0;
+        let totalAnswered = 0;
+        let currentStreak = 0;
+        let maxStreak = 0;
+        let timeRemaining = 0;
+        let gameTimer = null;
+        let startTime = 0;
+        let selectedAnswer = null;
+        let isAnswered = false;
+        let currentUsername = '';
+
+        // Initialize username
+        function initializeUsername() {
+            currentUsername = localStorage.getItem('epa609Username') || '';
+            if (!currentUsername) {
+                showUsernameModal();
+            } else {
+                document.getElementById('currentUserDisplay').textContent = currentUsername;
+            }
+        }
+
+        function showUsernameModal() {
+            document.getElementById('usernameModal').classList.add('show');
+            document.getElementById('usernameInput').value = currentUsername;
+            document.getElementById('usernameInput').focus();
+        }
+
+        function closeUsernameModal() {
+            if (currentUsername) {
+                document.getElementById('usernameModal').classList.remove('show');
+            }
+        }
+
+        function saveUsername() {
+            const input = document.getElementById('usernameInput').value.trim();
+            if (input) {
+                currentUsername = input;
+                localStorage.setItem('epa609Username', currentUsername);
+                document.getElementById('currentUserDisplay').textContent = currentUsername;
+                closeUsernameModal();
+            }
+        }
+
+        function changeUsername() {
+            showUsernameModal();
+        }
+
+        // Game modes configuration
+        const gameModes = {
+            quick: { questions: 10, timeLimit: 120, name: "Quick Quiz" },
+            standard: { questions: 25, timeLimit: 900, name: "Standard Test" },
+            endurance: { questions: 45, timeLimit: 1800, name: "Endurance Challenge" },
+            study: { questions: 45, timeLimit: null, name: "Study Mode" }
+        };
+
+        // Initialize leaderboard
+        function initializeLeaderboard() {
+            const leaderboard = JSON.parse(localStorage.getItem('epa609Leaderboard')) || [];
+            displayLeaderboard(leaderboard);
+        }
+
+        function displayLeaderboard(leaderboard) {
+            const container = document.getElementById('leaderboardList');
+            if (leaderboard.length === 0) {
+                container.innerHTML = '<div style="text-align: center; opacity: 0.7;">No scores yet. Be the first!</div>';
+                return;
+            }
+
+            container.innerHTML = leaderboard.slice(0, 10).map((entry, index) => `
+                <div class="leaderboard-entry">
+                    <span class="leaderboard-rank">#${index + 1}</span>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-name">${entry.username || 'Anonymous'}</div>
+                        <div class="leaderboard-details">${entry.mode} • ${formatTime(entry.time)} • ${entry.accuracy}%</div>
+                    </div>
+                    <span class="leaderboard-score">${entry.score.toLocaleString()}</span>
+                </div>
+            `).join('');
+        }
+
+        function saveScore(mode, score, time, accuracy) {
+            const leaderboard = JSON.parse(localStorage.getItem('epa609Leaderboard')) || [];
+            const username = currentUsername || 'Anonymous';
+            
+            // Find existing entry for this username and mode
+            const existingIndex = leaderboard.findIndex(entry => 
+                entry.username === username && entry.mode === gameModes[mode].name
+            );
+            
+            const newEntry = {
+                username: username,
+                mode: gameModes[mode].name,
+                score: score,
+                time: time,
+                accuracy: accuracy,
+                date: Date.now()
+            };
+            
+            let isNewRecord = false;
+            
+            if (existingIndex !== -1) {
+                // Update existing entry only if new score is higher
+                if (score > leaderboard[existingIndex].score) {
+                    leaderboard[existingIndex] = newEntry;
+                    isNewRecord = true;
+                }
+            } else {
+                // Add new entry
+                leaderboard.push(newEntry);
+                isNewRecord = true;
+            }
+            
+            // Sort by score and keep top 50
+            leaderboard.sort((a, b) => b.score - a.score);
+            leaderboard.splice(50);
+            
+            localStorage.setItem('epa609Leaderboard', JSON.stringify(leaderboard));
+            
+            // Check if this is the overall high score
+            return isNewRecord && leaderboard[0].score === score && leaderboard[0].username === username;
+        }
+
+        function startGame(mode) {
+            currentGameMode = mode;
+            const config = gameModes[mode];
+            
+            // Shuffle questions and select the required number
+            const shuffled = [...flashcards].sort(() => Math.random() - 0.5);
+            gameQuestions = shuffled.slice(0, config.questions);
+            
+            // Reset game state
+            currentQuestionIndex = 0;
+            score = 0;
+            correctAnswers = 0;
+            totalAnswered = 0;
+            currentStreak = 0;
+            maxStreak = 0;
+            selectedAnswer = null;
+            isAnswered = false;
+            startTime = Date.now();
+            
+            // Set up timer
+            if (config.timeLimit) {
+                timeRemaining = config.timeLimit;
+                startTimer();
+            } else {
+                timeRemaining = null;
+                document.querySelector('.timer').style.display = 'none';
+            }
+            
+            // Switch to game screen
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            displayQuestion();
+            updateStats();
+        }
+
+        function startTimer() {
+            gameTimer = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                
+                if (timeRemaining <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            if (timeRemaining !== null) {
+                document.getElementById('timeRemaining').textContent = formatTime(timeRemaining);
+                
+                // Change color when time is running low
+                const timerElement = document.querySelector('.timer');
+                if (timeRemaining <= 30) {
+                    timerElement.style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+                } else if (timeRemaining <= 60) {
+                    timerElement.style.background = 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)';
+                }
+            }
+        }
+
+        function formatTime(seconds) {
+            if (seconds === null) return '∞';
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function displayQuestion() {
+            if (currentQuestionIndex >= gameQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const question = gameQuestions[currentQuestionIndex];
+            selectedAnswer = null;
+            isAnswered = false;
+            
+            document.getElementById('questionNumber').textContent = `${currentQuestionIndex + 1} / ${gameQuestions.length}`;
+            document.getElementById('categoryBadge').textContent = question.category;
+            document.getElementById('questionText').textContent = question.question;
+            
+            // Create answer options
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = question.options.map((option, index) => `
+                <div class="answer-option" onclick="selectAnswer(${index})" data-index="${index}">
+                    ${String.fromCharCode(65 + index)}. ${option}
+                </div>
+            `).join('');
+            
+            // Hide feedback and update buttons
+            document.getElementById('resultFeedback').classList.add('hidden');
+            document.getElementById('nextBtn').disabled = true;
+            
+            updateProgress();
+        }
+
+        function selectAnswer(index) {
+            if (isAnswered) return;
+            
+            // Clear previous selections
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Select current answer
+            selectedAnswer = index;
+            document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+            
+            // Enable next button
+            document.getElementById('nextBtn').disabled = false;
+            
+            // Auto-submit in timed modes
+            if (currentGameMode !== 'study') {
+                setTimeout(() => submitAnswer(), 500);
+            }
+        }
+
+        function submitAnswer() {
+            if (isAnswered || selectedAnswer === null) return;
+            
+            isAnswered = true;
+            totalAnswered++;
+            
+            const question = gameQuestions[currentQuestionIndex];
+            const isCorrect = selectedAnswer === question.correct;
+            
+            // Show correct answer
+            document.querySelectorAll('.answer-option').forEach((option, index) => {
+                if (index === question.correct) {
+                    option.classList.add('correct');
+                } else if (index === selectedAnswer && !isCorrect) {
+                    option.classList.add('incorrect');
+                }
+            });
+            
+            // Update score and streak
+            if (isCorrect) {
+                correctAnswers++;
+                currentStreak++;
+                maxStreak = Math.max(maxStreak, currentStreak);
+                
+                // Calculate score with time bonus
+                let points = 100;
+                if (timeRemaining !== null) {
+                    const timeBonus = Math.floor(timeRemaining / 10);
+                    points += timeBonus;
+                }
+                
+                // Streak bonus
+                if (currentStreak >= 5) {
+                    points += currentStreak * 10;
+                }
+                
+                score += points;
+            } else {
+                currentStreak = 0;
+            }
+            
+            // Show feedback
+            const feedback = document.getElementById('resultFeedback');
+            feedback.classList.remove('hidden');
+            feedback.className = `result-feedback ${isCorrect ? 'correct' : 'incorrect'}`;
+            
+            if (currentGameMode === 'study') {
+                feedback.innerHTML = isCorrect ? 
+                    '✅ Correct! Well done!' : 
+                    `❌ Incorrect. The correct answer is: ${question.options[question.correct]}`;
+            } else {
+                feedback.innerHTML = isCorrect ? 
+                    `✅ Correct! +${score - (correctAnswers - 1) * 100} points` : 
+                    '❌ Incorrect';
+            }
+            
+            updateStats();
+            
+            // Auto-advance in timed modes
+            if (currentGameMode !== 'study') {
+                setTimeout(() => nextQuestion(), 2000);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            displayQuestion();
+        }
+
+        function skipQuestion() {
+            if (currentGameMode === 'study') {
+                nextQuestion();
+            } else {
+                // Penalty for skipping
+                currentStreak = 0;
+                totalAnswered++;
+                updateStats();
+                nextQuestion();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('currentScore').textContent = score.toLocaleString();
+            document.getElementById('accuracy').textContent = totalAnswered > 0 ? 
+                Math.round((correctAnswers / totalAnswered) * 100) + '%' : '0%';
+            document.getElementById('streak').textContent = currentStreak;
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestionIndex) / gameQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        function endGame() {
+            if (gameTimer) {
+                clearInterval(gameTimer);
+                gameTimer = null;
+            }
+            
+            const endTime = Date.now();
+            const totalTime = Math.floor((endTime - startTime) / 1000);
+            const accuracy = totalAnswered > 0 ? Math.round((correctAnswers / totalAnswered) * 100) : 0;
+            
+            // Check for new high score
+            let isNewRecord = false;
+            if (currentGameMode !== 'study') {
+                isNewRecord = saveScore(currentGameMode, score, totalTime, accuracy);
+            }
+            
+            // Show completion modal
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('finalAccuracy').textContent = accuracy + '%';
+            document.getElementById('finalTime').textContent = formatTime(totalTime);
+            document.getElementById('maxStreak').textContent = maxStreak;
+            
+            if (isNewRecord) {
+                document.getElementById('newRecord').classList.remove('hidden');
+            } else {
+                document.getElementById('newRecord').classList.add('hidden');
+            }
+            
+            document.getElementById('completionModal').classList.add('show');
+        }
+
+        function returnToMenu() {
+            document.getElementById('completionModal').classList.remove('show');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('menuScreen').classList.remove('hidden');
+            
+            // Reset timer display
+            document.querySelector('.timer').style.display = 'block';
+            document.querySelector('.timer').style.background = 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)';
+            
+            // Refresh leaderboard
+            initializeLeaderboard();
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', function(event) {
+            // Username modal controls
+            if (!document.getElementById('usernameModal').classList.contains('show')) {
+                if (document.getElementById('gameScreen').classList.contains('hidden')) return;
+                
+                if (event.key >= '1' && event.key <= '4') {
+                    const index = parseInt(event.key) - 1;
+                    if (index < gameQuestions[currentQuestionIndex].options.length) {
+                        selectAnswer(index);
+                    }
+                } else if (event.key === 'Enter' && selectedAnswer !== null) {
+                    if (currentGameMode === 'study') {
+                        if (!isAnswered) {
+                            submitAnswer();
+                        } else {
+                            nextQuestion();
+                        }
+                    }
+                } else if (event.key === ' ') {
+                    event.preventDefault();
+                    if (isAnswered || currentGameMode === 'study') {
+                        nextQuestion();
+                    } else {
+                        skipQuestion();
+                    }
+                }
+            } else {
+                // Username modal is open
+                if (event.key === 'Enter') {
+                    saveUsername();
+                } else if (event.key === 'Escape') {
+                    closeUsernameModal();
+                }
+            }
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUsername();
+            initializeLeaderboard();
+        });
+
+        // Auto-submit answer when selected in timed modes
+        function autoSubmitAfterSelection() {
+            if (selectedAnswer !== null && !isAnswered && currentGameMode !== 'study') {
+                submitAnswer();
+            }
+        }
+    </script>
+</body>
+</html>
